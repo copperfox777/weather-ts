@@ -1,14 +1,16 @@
 import React from "react";
 import { Select } from "antd";
-import {useDispatch} from 'react-redux'
-import {fetchWeather} from '../store/weatherSlice'
+import {useDispatch,useSelector} from 'react-redux'
+import {fetchWeather, getStatus } from '../store/weatherSlice'
 
 const { Option } = Select;
 
 export default function CitySelector() {
   const dispatch = useDispatch()
+  const status = useSelector(getStatus)
   return (
     <Select
+      disabled={status === 'pending' ? true : false }
       className="select"
       showSearch
       style={{ width: 200 }}
@@ -16,7 +18,7 @@ export default function CitySelector() {
       optionFilterProp="children"
       onChange={(value) => dispatch(fetchWeather(value))}
       filterOption={(input, option) =>
-        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        option?.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
       }
     >
       <Option value="moscow">Moscow</Option>

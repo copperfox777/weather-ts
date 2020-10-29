@@ -1,5 +1,4 @@
-import { createSlice, createAsyncThunk, createEntityAdapter, createSelector } from '@reduxjs/toolkit'
-import { client } from '../api/client'
+import { createSlice, createAsyncThunk, nanoid } from '@reduxjs/toolkit'
 
 const initialState = {
   data: [],
@@ -8,37 +7,50 @@ const initialState = {
   history:[],
 }
 
-export const fetchWeather = createAsyncThunk('weather/fetchWeather', async (city) => {
-  let data = await client('https://api.openweathermap.org/data/2.5/forecast?appid=ce1fe59a97e1d3ca691fd2a7a7a2db8a&q=Moscow&units=metric&lang=ru')
-  console.log(data)
-  return data;
+const fetchWeatherThunk = createAsyncThunk('weatherSlice/fetchWeather', async (city,{ rejectWithValue }) => {
+  try {
+  const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?appid=ce1fe59a97e1d3ca691fd2a7a7a2db8a&q=${city}&units=metric&lang=ru`)
+  if (response.ok) {
+      const data = await response.json()
+      const processedData = data.list.reduce((acc, item) =>{
+        return acc.concat({id:nanoid(),temp:item.main.temp,description:item.weather[0].description,date:item.dt_txt})
+    },[])
+    
+    return {data:processedData,city}
+    
+  }  
+  } catch(e) {
+    return rejectWithValue({error:e.message,city})
+  }
 });
 
 
 export const weatherSlice = createSlice({
-  name: 'weather',
+  name: 'weatherSlice',
   initialState,
   
   extraReducers: {
   
-    [fetchWeather.pending]: (state, action) => {
+    [fetchWeatherThunk.pending]: (state, action) => {
       state.status = 'pending'
     },
-    [fetchWeather.fulfilled]: (state, action) => {
+    [fetchWeatherThunk.fulfilled]: (state, action) => {
       state.status = "idle"
-      console.log(action.payload)
-      state.data = action.payload
+      state.data = action.payload.data
+      state.history.unshift({history:action.payload.city,id:nanoid()})
     },
-    [fetchWeather.rejected]: (state, action) => {
+    [fetchWeatherThunk.rejected]: (state, action) => {
       state.data=[]
       state.status = 'failed'
-      state.error = action.error.message
+      state.history.unshift({history:action.payload.city,id:nanoid()})
+      state.error = action.payload.error
     },
 
   },
 });
 
-export const getWeataher = (state) => state.weather.data
-export const getHistory = (state) => state.weather.history
-
+export const getWeather = (state) => state.weatherSlice.data
+export const getHistory = (state) => state.weatherSlice.history
+export const getStatus = (state) => state.weatherSlice.status
+export const fetchWeather = (args) => fetchWeatherThunk(args)
 export default weatherSlice.reducer;

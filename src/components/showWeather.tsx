@@ -1,19 +1,28 @@
 import React from 'react';
-import { getWeataher, getHistory } from '../store/weatherSlice'
+import {Space} from 'antd'
 export interface WeatherItem {
-  date: string;
-  temp: number;
-  description:string;
+    id: string;
+    date: string;
+    temp: number;
+    description:string; 
 }
 
 export interface ShowWeatherProps {
   list: WeatherItem[]
 }
 
- const ShowWeather: React.FC<ShowWeatherProps> = (props) => {
+ const ShowWeather: React.FC<ShowWeatherProps> = ({list}) => {
     return (
       <div>
-        1
+        {list.map((item)=>
+        <div key={item.id} className="weather-item">
+          <Space>
+            <div className="date">{item.date}</div>
+            <div className="temp">{item.temp}</div>
+            <div className="description">{item.description}</div>
+          </Space>
+        </div>
+        )}
       </div>
     )
 }

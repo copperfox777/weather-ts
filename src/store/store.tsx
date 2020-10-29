@@ -3,7 +3,7 @@ import weatherSlice from './weatherSlice';
 
 export default configureStore({
   reducer: {
-    table: weatherSlice,
+    weatherSlice,
   },
   devTools: process.env.NODE_ENV !== 'production',
 });
